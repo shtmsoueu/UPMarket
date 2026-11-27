@@ -14,6 +14,9 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.*;
 import org.bukkit.block.*;
 
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+
 public class Listeners implements Listener
 {
     private UPMarket plugin;
@@ -142,14 +145,15 @@ public class Listeners implements Listener
                     player.sendMessage(this.plugin.getLangManager().getString("Errors.Inv_Full"));
                     return;
                 }
+                if (!this.transferirPagamento(player, mi3.getOwner(), mi3.getPrice())) {
+                    return;
+                }
                 player.getInventory().addItem(new ItemStack[] { mi3.getItem() });
                 player.updateInventory();
                 player.sendMessage(this.plugin.getLangManager().getString("Messages.Bought"));
                 if (Bukkit.getPlayer(mi3.getOwner()) != null) {
                     Bukkit.getPlayer(mi3.getOwner()).sendMessage(this.plugin.getLangManager().getString("Messages.Selled").replace("@player", player.getName()));
                 }
-                this.plugin.getEcon().depositPlayer(mi3.getOwner(), mi3.getPrice());
-                this.plugin.getEcon().withdrawPlayer(player.getName(), mi3.getPrice());
                 event.getInventory().removeItem(new ItemStack[] { current });
                 mi3.getCategory().updateInventory(event.getInventory());
                 this.plugin.getItensManager().removeItem(mi3.getUUID());
@@ -182,14 +186,15 @@ public class Listeners implements Listener
                     player.sendMessage(this.plugin.getLangManager().getString("Errors.Inv_Full"));
                     return;
                 }
+                if (!this.transferirPagamento(player, mi4.getOwner(), mi4.getPrice())) {
+                    return;
+                }
                 player.getInventory().addItem(new ItemStack[] { mi4.getItem() });
                 player.updateInventory();
                 player.sendMessage(this.plugin.getLangManager().getString("Messages.Bought"));
                 if (Bukkit.getPlayer(mi4.getOwner()) != null) {
                     Bukkit.getPlayer(mi4.getOwner()).sendMessage(this.plugin.getLangManager().getString("Messages.Selled").replace("@player", player.getName()));
                 }
-                this.plugin.getEcon().depositPlayer(mi4.getOwner(), mi4.getPrice());
-                this.plugin.getEcon().withdrawPlayer(player.getName(), mi4.getPrice());
                 event.getInventory().removeItem(new ItemStack[] { current });
                 this.plugin.getItensManager().removePersonal(mi4.getUUID());
                 player.updateInventory();
@@ -296,5 +301,31 @@ public class Listeners implements Listener
     @EventHandler
     public void signUpdate(SignGUICloseEvent event) {
         event.getPlayer().openInventory(Menu.search(event.getSignText()[0]));
+    }
+
+    /**
+     * Cobra o comprador e só então paga o vendedor.
+     * Se o saque falhar, nada é depositado. Se o depósito falhar, o comprador é reembolsado.
+     *
+     * @return true se o dinheiro foi transferido e o item pode ser entregue
+     */
+    private boolean transferirPagamento(Player comprador, String vendedor, double preco) {
+        Economy econ = this.plugin.getEcon();
+        EconomyResponse saque = econ.withdrawPlayer(comprador.getName(), preco);
+        if (saque == null || !saque.transactionSuccess()) {
+            comprador.sendMessage(this.plugin.getLangManager().getString("Errors.Hasnt_Money"));
+            return false;
+        }
+        EconomyResponse deposito = econ.depositPlayer(vendedor, preco);
+        if (deposito == null || !deposito.transactionSuccess()) {
+            EconomyResponse estorno = econ.depositPlayer(comprador.getName(), preco);
+            this.plugin.getLogger().warning("Falha ao pagar " + vendedor + " (" + preco + "): "
+                    + (deposito == null ? "sem resposta" : deposito.errorMessage)
+                    + ". Estorno ao comprador " + comprador.getName() + ": "
+                    + (estorno != null && estorno.transactionSuccess() ? "ok" : "FALHOU"));
+            comprador.sendMessage(Text.colorize("&cNao foi possivel concluir o pagamento. Seu dinheiro foi devolvido."));
+            return false;
+        }
+        return true;
     }
 }
