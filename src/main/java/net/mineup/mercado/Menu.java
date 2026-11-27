@@ -17,7 +17,7 @@ public class Menu
         
         int amount = UPMarket.getInstance().getItensManager().personalAmount(player.getName());
         output.setItem(44, new ItemBuilder(Material.CHEST).name("&eMeus Itens").lore("&7Clique aqui para ver", "&7os seus itens expirados.").build());
-        output.setItem(36, new ItemBuilder(Material.SKULL_ITEM).durability(3).amount(amount).owner(player.getName()).name("&6Mercado Pessoal").lore("&7Estes itens foram colocados", "&7à venda apenas para você", "&7por outros jogadores.", "", "&fItens disponíveis: &7" + amount).build());
+        output.setItem(36, new ItemBuilder(Material.SKULL_ITEM).durability(3).amount(amount).owner(player.getName()).name("&6Mercado Pessoal").lore("&7Estes itens foram colocados", "&7Ã  venda apenas para vocÃª", "&7por outros jogadores.", "", "&fItens disponÃ­veis: &7" + amount).build());
         return output;
     }
     

@@ -35,7 +35,7 @@ public class Category {
 		int page = 1;
 		this.pages.put(1, inv);
 		inv.setItem(49, new ItemBuilder(this.icon).name("&6Atualizar")
-				.lore("&7Clique aqui para atualizar", "&7os itens disponÌveis.").removeAttributes().build());
+				.lore("&7Clique aqui para atualizar", "&7os itens dispon√≠veis.").removeAttributes().build());
 		for (MarketItem m : UPMarket.getInstance().getItensManager().getItems().values()) {
 			if (m == null) {
 				continue;
@@ -53,14 +53,14 @@ public class Category {
 				item = nbt.getItem();
 			}
 			if (inv.firstEmpty() + 1 == 54) {
-				inv.setItem(53, new ItemBuilder(Material.ARROW).name("&aP·gina " + (page + 1))
-						.lore("&7Clique aqui para ir", "&7para a prÛxima p·gina.").build());
+				inv.setItem(53, new ItemBuilder(Material.ARROW).name("&aP√°gina " + (page + 1))
+						.lore("&7Clique aqui para ir", "&7para a pr√≥xima p√°gina.").build());
 				++page;
 				inv = Bukkit.createInventory((InventoryHolder) null, 54, "Mercado - " + this.name + " " + page);
 				inv.addItem(new ItemStack[] { item });
 				if (page > 1) {
-					inv.setItem(45, new ItemBuilder(Material.ARROW).name("&cP·gina " + (page - 1))
-							.lore("&7Clique aqui para ir", "&7para a p·gina anterior.").build());
+					inv.setItem(45, new ItemBuilder(Material.ARROW).name("&cP√°gina " + (page - 1))
+							.lore("&7Clique aqui para ir", "&7para a p√°gina anterior.").build());
 				}
 				this.pages.put(page, inv);
 			} else {
@@ -98,10 +98,10 @@ public class Category {
 	public ItemStack getIcon() {
 		if (this.icon == null) {
 			return new ItemBuilder(Material.WOOL).durability(14).name("&cErro!")
-					.lore("&7Essa categoria est·", "&7com algum erro.").build();
+					.lore("&7Essa categoria est√°", "&7com algum erro.").build();
 		}
 		int amount = UPMarket.getInstance().getItensManager().getItems(this);
-		return new ItemBuilder(this.icon).amount(amount).lore("", "&fItens disponÌveis: &7" + amount)
+		return new ItemBuilder(this.icon).amount(amount).lore("", "&fItens dispon√≠veis: &7" + amount)
 				.glow(this.glow).removeAttributes().build();
 	}
 

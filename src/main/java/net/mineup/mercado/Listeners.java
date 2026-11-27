@@ -62,7 +62,7 @@ public class Listeners implements Listener
             String uuid = nbt.getString("uuid");
             MarketItem mi = this.plugin.getItensManager().getExpired(uuid);
             if (mi == null) {
-                player.sendMessage(Text.colorize("&cEsse item n„o est· mais na loja!"));
+                player.sendMessage(Text.colorize("&cEsse item n√£o est√° mais na loja!"));
                 return;
             }
             if (!Util.invCanHoldItem((Inventory)player.getInventory(), mi.getItem())) {
@@ -101,7 +101,7 @@ public class Listeners implements Listener
                 NBTItemStack nbt2 = new NBTItemStack(current);
                 MarketItem mi2 = this.plugin.getItensManager().getItem(nbt2.getString("uuid"));
                 if (mi2 == null) {
-                    player.sendMessage(Text.colorize("&cEsse item n„o est· mais na loja!"));
+                    player.sendMessage(Text.colorize("&cEsse item n√£o est√° mais na loja!"));
                     event.getInventory().removeItem(new ItemStack[] { current });
                     player.closeInventory();
                     return;
@@ -131,7 +131,7 @@ public class Listeners implements Listener
             if (event.getSlot() == 11) {
                 player.closeInventory();
                 if (mi3 == null) {
-                    player.sendMessage(Text.colorize("&cEsse item n„o est· mais na loja!"));
+                    player.sendMessage(Text.colorize("&cEsse item n√£o est√° mais na loja!"));
                     return;
                 }
                 if (this.plugin.getEcon().getBalance(player.getName()) < mi3.getPrice()) {
@@ -171,7 +171,7 @@ public class Listeners implements Listener
             if (event.getSlot() == 11) {
                 player.closeInventory();
                 if (mi4 == null) {
-                    player.sendMessage(Text.colorize("&cEsse item n„o est· mais na loja!"));
+                    player.sendMessage(Text.colorize("&cEsse item n√£o est√° mais na loja!"));
                     return;
                 }
                 if (this.plugin.getEcon().getBalance(player.getName()) < mi4.getPrice()) {
@@ -212,7 +212,7 @@ public class Listeners implements Listener
             NBTItemStack nbt = new NBTItemStack(current);
             PersonalItem mi4 = this.plugin.getItensManager().getPersonal(nbt.getString("uuid"));
             if (mi4 == null) {
-                player.sendMessage("&cEsse item n„o est· mais a venda!");
+                player.sendMessage("&cEsse item n√£o est√° mais a venda!");
                 event.getInventory().removeItem(new ItemStack[] { current });
                 player.closeInventory();
                 return;
@@ -244,7 +244,7 @@ public class Listeners implements Listener
             NBTItemStack nbt = new NBTItemStack(current);
             MarketItem mi3 = this.plugin.getItensManager().getItem(nbt.getString("uuid"));
             if (mi3 == null) {
-                player.sendMessage(Text.colorize("&cEsse item n„o est· mais na loja!"));
+                player.sendMessage(Text.colorize("&cEsse item n√£o est√° mais na loja!"));
                 event.getInventory().removeItem(new ItemStack[] { current });
                 player.closeInventory();
                 return;
