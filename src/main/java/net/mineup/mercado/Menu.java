@@ -93,10 +93,8 @@ public class Menu
                 ItemStack item = mi.insertLore();
                 if (output.getItem(i) == null || output.getItem(i).getType() == Material.AIR) {
                     NBTItemStack nbt = new NBTItemStack(item);
-                    if (!nbt.hasKey("uuid")) {
-                        nbt.setString("uuid", mi.getUUID());
-                        item = nbt.getItem();
-                    }
+                    nbt.setString("uuid", mi.getUUID());
+                    item = nbt.getItem();
                     if (output.firstEmpty() + 1 == 45) {
                         break;
                     }

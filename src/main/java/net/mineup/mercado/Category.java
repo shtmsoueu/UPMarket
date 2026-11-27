@@ -48,10 +48,8 @@ public class Category {
 			}
 			ItemStack item = m.insertLore();
 			NBTItemStack nbt = new NBTItemStack(item);
-			if (!nbt.hasKey("uuid")) {
-				nbt.setString("uuid", m.getUUID());
-				item = nbt.getItem();
-			}
+			nbt.setString("uuid", m.getUUID());
+			item = nbt.getItem();
 			if (inv.firstEmpty() + 1 == 54) {
 				inv.setItem(53, new ItemBuilder(Material.ARROW).name("&aPágina " + (page + 1))
 						.lore("&7Clique aqui para ir", "&7para a próxima página.").build());

@@ -18,6 +18,149 @@ public class SQLManager
         this.plugin = plugin;
     }
     
+    /**
+     * Corrige anúncios que ficaram com o mesmo ID por causa do gerador antigo.
+     * Todas as linhas de um ID repetido são apagadas e reinseridas, cada uma com um
+     * UUID novo e os demais campos intactos, dentro de uma transação.
+     * Assim os itens que estavam "escondidos" no cache voltam a aparecer.
+     */
+    public void fixDuplicateIds(final String table) {
+        final String uuidColumn = Columns.UUID.getColumn();
+        try {
+            if (this.plugin.getStorage().getConnection().isClosed()) {
+                this.plugin.getStorage().connect();
+            }
+            final Connection conn = this.plugin.getStorage().getConnection();
+            final Map<String, List<Map<String, Object>>> byId = new LinkedHashMap<String, List<Map<String, Object>>>();
+            final List<String> columns = new ArrayList<String>();
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery("SELECT * FROM " + table)) {
+                final ResultSetMetaData meta = rs.getMetaData();
+                for (int i = 1; i <= meta.getColumnCount(); ++i) {
+                    columns.add(meta.getColumnName(i));
+                }
+                while (rs.next()) {
+                    final Map<String, Object> row = new LinkedHashMap<String, Object>();
+                    for (final String column : columns) {
+                        row.put(column, rs.getObject(column));
+                    }
+                    final String id = String.valueOf(row.get(uuidColumn));
+                    List<Map<String, Object>> rows = byId.get(id);
+                    if (rows == null) {
+                        rows = new ArrayList<Map<String, Object>>();
+                        byId.put(id, rows);
+                    }
+                    rows.add(row);
+                }
+            }
+            int fixed = 0;
+            final StringBuilder insert = new StringBuilder("INSERT INTO " + table + " (");
+            final StringBuilder values = new StringBuilder(") VALUES (");
+            for (int i = 0; i < columns.size(); ++i) {
+                insert.append(i == 0 ? "" : ", ").append(columns.get(i));
+                values.append(i == 0 ? "?" : ", ?");
+            }
+            final String insertSql = insert.append(values).append(")").toString();
+            final boolean autoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try (PreparedStatement delete = conn.prepareStatement("DELETE FROM " + table + " WHERE " + uuidColumn + " = ?");
+                 PreparedStatement ins = conn.prepareStatement(insertSql)) {
+                for (final Map.Entry<String, List<Map<String, Object>>> entry : byId.entrySet()) {
+                    if (entry.getValue().size() < 2) {
+                        continue;
+                    }
+                    delete.setString(1, entry.getKey());
+                    delete.executeUpdate();
+                    for (final Map<String, Object> row : entry.getValue()) {
+                        row.put(uuidColumn, MarketItem.createUUID());
+                        for (int i = 0; i < columns.size(); ++i) {
+                            ins.setObject(i + 1, row.get(columns.get(i)));
+                        }
+                        ins.executeUpdate();
+                        ++fixed;
+                    }
+                }
+                conn.commit();
+            }
+            catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            }
+            finally {
+                conn.setAutoCommit(autoCommit);
+            }
+            if (fixed > 0) {
+                this.plugin.getLogger().warning(fixed + " anuncio(s) com ID repetido em " + table + " receberam um ID novo.");
+            }
+        }
+        catch (Exception ex) {
+            this.plugin.getLogger().severe("Falha ao corrigir IDs repetidos em " + table + ": " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+    
+    /**
+     * Anúncios ativos passam para km_expired com o mesmo ID. Com o gerador antigo, um
+     * anúncio ativo podia ter o mesmo ID de um item já expirado, e a passagem falharia
+     * no índice único. Dá um ID novo aos anúncios ativos nessa situação.
+     * Deve rodar depois de fixDuplicateIds("km_items").
+     */
+    public void fixIdsShared(final String table, final String otherTable) {
+        final String uuidColumn = Columns.UUID.getColumn();
+        try {
+            if (this.plugin.getStorage().getConnection().isClosed()) {
+                this.plugin.getStorage().connect();
+            }
+            final Connection conn = this.plugin.getStorage().getConnection();
+            final List<String> shared = new ArrayList<String>();
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery("SELECT " + uuidColumn + " FROM " + table + " WHERE " + uuidColumn + " IN (SELECT " + uuidColumn + " FROM " + otherTable + ")")) {
+                while (rs.next()) {
+                    shared.add(rs.getString(1));
+                }
+            }
+            if (shared.isEmpty()) {
+                return;
+            }
+            try (PreparedStatement update = conn.prepareStatement("UPDATE " + table + " SET " + uuidColumn + " = ? WHERE " + uuidColumn + " = ?")) {
+                for (final String id : shared) {
+                    update.setString(1, MarketItem.createUUID());
+                    update.setString(2, id);
+                    update.executeUpdate();
+                }
+            }
+            this.plugin.getLogger().warning(shared.size() + " anuncio(s) em " + table + " tinham o mesmo ID de " + otherTable + " e receberam um ID novo.");
+        }
+        catch (Exception ex) {
+            this.plugin.getLogger().severe("Falha ao corrigir IDs compartilhados entre " + table + " e " + otherTable + ": " + ex.getMessage());
+        }
+    }
+    
+    /**
+     * Garante um índice único na coluna de ID em tabelas antigas, criadas sem PRIMARY KEY.
+     */
+    public void ensureUniqueId(final String table) {
+        final String uuidColumn = Columns.UUID.getColumn();
+        try {
+            if (this.plugin.getStorage().getConnection().isClosed()) {
+                this.plugin.getStorage().connect();
+            }
+            final Connection conn = this.plugin.getStorage().getConnection();
+            try (ResultSet rs = conn.getMetaData().getIndexInfo(null, null, table, true, false)) {
+                while (rs.next()) {
+                    if (uuidColumn.equalsIgnoreCase(rs.getString("COLUMN_NAME"))) {
+                        return;
+                    }
+                }
+            }
+            try (Statement st = conn.createStatement()) {
+                st.executeUpdate("CREATE UNIQUE INDEX idx_" + table + "_" + uuidColumn + " ON " + table + " (" + uuidColumn + ")");
+            }
+        }
+        catch (Exception ex) {
+            this.plugin.getLogger().severe("Falha ao criar indice unico em " + table + ": " + ex.getMessage());
+        }
+    }
+    
     public void addItem(final MarketItem item) {
         try {
             if (this.plugin.getStorage().getConnection().isClosed()) {

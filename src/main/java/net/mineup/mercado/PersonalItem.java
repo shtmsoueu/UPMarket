@@ -26,12 +26,7 @@ public class PersonalItem
     }
     
     public PersonalItem(ItemStack item, String owner, String buyer, double price) {
-        this(item, owner, buyer, price, createUUID(item, owner, buyer));
-    }
-    
-    @SuppressWarnings("deprecation")
-	public static String createUUID(ItemStack item, String owner, String buyer) {
-        return String.valueOf(item.getTypeId() + item.getData().getData()) + owner + buyer + UPMarket.getInstance().getSQLManager().getAmountPersonalItems(buyer);
+        this(item, owner, buyer, price, MarketItem.createUUID());
     }
     
     public ItemStack putLore() {
