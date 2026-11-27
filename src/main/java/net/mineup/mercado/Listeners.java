@@ -9,7 +9,6 @@ import net.mineup.mercado.utils.geral.*;
 import net.mineup.mercado.utils.itemhandler.*;
 
 import org.bukkit.*;
-import org.bukkit.event.player.*;
 import org.bukkit.event.block.*;
 import org.bukkit.event.*;
 import org.bukkit.block.*;
@@ -273,15 +272,6 @@ public class Listeners implements Listener
                 player.openInventory(Menu.confirm(mi3));
             }
         }
-    }
-    
-    @EventHandler
-    public void playerJoin(PlayerJoinEvent event) {
-        if (event.getPlayer() == null) {
-            return;
-        }
-        this.plugin.getSQLManager().refreshItem(event.getPlayer().getName());
-        this.plugin.getSQLManager().refreshExpired(event.getPlayer().getName());
     }
     
     @EventHandler

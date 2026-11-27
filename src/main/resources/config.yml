@@ -8,6 +8,9 @@ MySQL:
 Timers:
   Tempo_Loja: 12
   Tempo_Expirado: 48
+  # De quantos em quantos minutos o servidor verifica anuncios vencidos
+  # (independe de o dono estar online). Minimo: 1.
+  Intervalo_Verificacao: 5
 
 Config:
   Delay_Broadcast: 30

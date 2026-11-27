@@ -19,6 +19,7 @@ public class ItensManager
     }
     
     public void addItem(MarketItem m) {
+        m.setTime(System.currentTimeMillis());
         this.items.put(m.getUUID(), m);
         this.plugin.getSQLManager().addItem(m);
     }
@@ -85,6 +86,7 @@ public class ItensManager
     }
     
     public void addExpired(MarketItem m) {
+        m.setTime(System.currentTimeMillis());
         this.expireds.put(m.getUUID(), m);
         this.plugin.getSQLManager().addExpired(m);
     }
@@ -92,6 +94,28 @@ public class ItensManager
     public void removeExpired(String uuid) {
         this.expireds.remove(uuid);
         this.plugin.getSQLManager().deleteExpired(uuid);
+    }
+    
+    /**
+     * Move um anúncio do mercado para "Expirados" de forma atômica no banco.
+     * Só altera o cache se a transação for confirmada; em caso de falha o anúncio
+     * continua à venda e será tentado de novo na próxima verificação.
+     *
+     * @return true se o anúncio existia e foi movido.
+     */
+    public boolean expireListing(String uuid) {
+        MarketItem listing = this.items.get(uuid);
+        if (listing == null) {
+            return false;
+        }
+        MarketItem expired = new MarketItem(listing.getItem(), null, listing.getOwner(), 0.0, uuid);
+        expired.setTime(System.currentTimeMillis());
+        if (!this.plugin.getSQLManager().moveToExpired(expired)) {
+            return false;
+        }
+        this.items.remove(uuid);
+        this.expireds.put(uuid, expired);
+        return true;
     }
     
     public MarketItem getExpired(String uuid) {
