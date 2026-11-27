@@ -13,7 +13,7 @@ public class Util {
 		Player player = Bukkit.getPlayer(prefix);
 		User user = LuckPermsProvider.get().getUserManager().getUser(player.getUniqueId());
 		prefix = user.getCachedData().getMetaData(LuckPermsProvider.get().getContextManager().getQueryOptions(player)).getPrefix();
-		return prefix.isEmpty() ? "ง7" : prefix.replace("&", "ง");
+		return prefix.isEmpty() ? "ยง7" : prefix.replace("&", "ยง");
 	}
 
 	public static String onlyNumbers(String str) {

@@ -74,6 +74,22 @@
             <artifactId>spigot-api</artifactId>
             <version>1.8.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- bungeecord-chat 1.8-SNAPSHOT não está mais publicado em nenhum repositório -->
+                <exclusion>
+                    <groupId>net.md-5</groupId>
+                    <artifactId>bungeecord-chat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Substitui o bungeecord-chat transitivo do spigot-api 1.8.8 (Maven Central, bytecode Java 8).
+             Apenas para compilação: em runtime o servidor fornece a própria versão. -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-chat</artifactId>
+            <version>1.16-R0.4</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -81,8 +97,20 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- Evita trazer bukkit 1.13.1 para o classpath de um plugin 1.8.8 -->
+                <exclusion>
+                    <groupId>org.bukkit</groupId>
+                    <artifactId>bukkit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
-
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -38,10 +38,10 @@ public class PersonalItem
         ItemStack is = this.item.clone();
         ItemMeta meta = is.getItemMeta();
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<String>();
-        if (lore.isEmpty() || !lore.get(lore.size() - 1).startsWith(Text.colorize("&ePreço:"))) {
+        if (lore.isEmpty() || !lore.get(lore.size() - 1).startsWith(Text.colorize("&ePreÃ§o:"))) {
             lore.add("");
             lore.add(Text.colorize("&eVendedor: &7" + this.owner));
-            lore.add(Text.colorize("&ePreço: &2$" + NumberFormat.getInstance().format(this.price)));
+            lore.add(Text.colorize("&ePreÃ§o: &2$" + NumberFormat.getInstance().format(this.price)));
             meta.setLore(lore);
             is.setItemMeta(meta);
         }
@@ -52,11 +52,11 @@ public class PersonalItem
         ItemStack is = this.item.clone();
         ItemMeta meta = is.getItemMeta();
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<String>();
-        if (lore.isEmpty() || !lore.get(lore.size() - 1).startsWith(Text.colorize("&ePreço:"))) {
+        if (lore.isEmpty() || !lore.get(lore.size() - 1).startsWith(Text.colorize("&ePreÃ§o:"))) {
             lore.add("");
             lore.add(Text.colorize("&eVendedor: &7" + this.owner));
             lore.add(Text.colorize("&eComprador: &7" + this.buyer));
-            lore.add(Text.colorize("&ePreço: &2$" + NumberFormat.getInstance().format(this.price)));
+            lore.add(Text.colorize("&ePreÃ§o: &2$" + NumberFormat.getInstance().format(this.price)));
             lore.add("");
             lore.add(Text.colorize("&aClique para coletar."));
             meta.setLore(lore);

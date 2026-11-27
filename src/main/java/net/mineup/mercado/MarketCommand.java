@@ -62,7 +62,7 @@ public class MarketCommand extends Command
                 String c = args[1];
                 Category category = this.plugin.getCategoryManager().getCategory(c);
                 if (category == null) {
-                    player.sendMessage(Text.colorize("&cEssa categoria n„o existe!"));
+                    player.sendMessage(Text.colorize("&cEssa categoria n√£o existe!"));
                     return false;
                 }
                 category.loadPages();
