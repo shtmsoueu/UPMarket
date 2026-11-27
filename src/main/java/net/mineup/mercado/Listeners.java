@@ -23,14 +23,40 @@ public class Listeners implements Listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
+    /**
+     * Todas as telas do plugin têm título começando por "Mercado - " ou "Mercado Pessoal - ".
+     * Os itens dessas telas são só vitrine e nunca podem sair dela.
+     */
+    public static boolean isMarketInventory(Inventory inventory) {
+        if (inventory == null || inventory.getName() == null) {
+            return false;
+        }
+        String name = inventory.getName();
+        return name.startsWith("Mercado - ") || name.startsWith("Mercado Pessoal - ");
+    }
+    
     @SuppressWarnings("deprecation")
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
     public void clickEvent(InventoryClickEvent event) {
+        if (!isMarketInventory(event.getInventory())) {
+            return;
+        }
+        // Cancela qualquer clique enquanto uma tela do mercado está aberta: slot vazio,
+        // shift-click, tecla numérica, clique duplo (que puxa itens da tela para o cursor)
+        // e cliques no inventário do próprio jogador.
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player)) {
+            return;
+        }
+        // Só os slots da tela de cima são botões; cliques no inventário de baixo
+        // (ou fora da janela) não podem acionar "Aceitar", "Voltar" etc.
+        if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getInventory().getSize()) {
+            return;
+        }
         if (event.getInventory().getName().equalsIgnoreCase("Mercado - Categorias")) {
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             if (event.getSlot() == 44) {
                 player.openInventory(Menu.expireds(player));
@@ -51,7 +77,6 @@ public class Listeners implements Listener
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             if (event.getSlot() == 18) {
                 player.openInventory(Menu.inventory(player));
@@ -69,7 +94,7 @@ public class Listeners implements Listener
                 player.sendMessage(this.plugin.getLangManager().getString("Errors.Inv_Full"));
                 return;
             }
-            player.getInventory().addItem(new ItemStack[] { mi.getItem() });
+            Util.giveItem(player, mi.getItem());
             player.sendMessage(this.plugin.getLangManager().getString("Messages.Expired_Collected"));
             player.closeInventory();
             this.plugin.getItensManager().removeExpired(uuid);
@@ -78,7 +103,6 @@ public class Listeners implements Listener
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             ItemStack current = event.getCurrentItem();
             String c = Util.onlyWords(event.getInventory().getName()).replace("Mercado - ", "").trim();
@@ -123,7 +147,6 @@ public class Listeners implements Listener
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             ItemStack current = event.getInventory().getItem(13);
             NBTItemStack nbt = new NBTItemStack(current);
@@ -142,7 +165,7 @@ public class Listeners implements Listener
                     player.sendMessage(this.plugin.getLangManager().getString("Errors.Inv_Full"));
                     return;
                 }
-                player.getInventory().addItem(new ItemStack[] { mi3.getItem() });
+                Util.giveItem(player, mi3.getItem());
                 player.updateInventory();
                 player.sendMessage(this.plugin.getLangManager().getString("Messages.Bought"));
                 if (Bukkit.getPlayer(mi3.getOwner()) != null) {
@@ -163,7 +186,6 @@ public class Listeners implements Listener
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             ItemStack current = event.getInventory().getItem(13);
             NBTItemStack nbt = new NBTItemStack(current);
@@ -182,7 +204,7 @@ public class Listeners implements Listener
                     player.sendMessage(this.plugin.getLangManager().getString("Errors.Inv_Full"));
                     return;
                 }
-                player.getInventory().addItem(new ItemStack[] { mi4.getItem() });
+                Util.giveItem(player, mi4.getItem());
                 player.updateInventory();
                 player.sendMessage(this.plugin.getLangManager().getString("Messages.Bought"));
                 if (Bukkit.getPlayer(mi4.getOwner()) != null) {
@@ -202,7 +224,6 @@ public class Listeners implements Listener
             if (event.getCurrentItem() == null || event.getCurrentItem().getItemMeta() == null || event.getCurrentItem().getType() == Material.AIR) {
                 return;
             }
-            event.setCancelled(true);
             Player player = (Player)event.getWhoClicked();
             if (event.getSlot() == 27) {
                 player.openInventory(Menu.inventory(player));
@@ -223,7 +244,7 @@ public class Listeners implements Listener
                     return;
                 }
                 this.plugin.getItensManager().removePersonal(mi4.getUUID());
-                player.getInventory().addItem(new ItemStack[] { mi4.getItem() });
+                Util.giveItem(player, mi4.getItem());
                 event.getInventory().removeItem(new ItemStack[] { current });
                 player.updateInventory();
             }
@@ -272,6 +293,13 @@ public class Listeners implements Listener
             else {
                 player.openInventory(Menu.confirm(mi3));
             }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void dragEvent(InventoryDragEvent event) {
+        if (isMarketInventory(event.getInventory())) {
+            event.setCancelled(true);
         }
     }
     

@@ -51,13 +51,20 @@ public class UPMarket extends JavaPlugin
             }
             this.storage = new Database(this.databaseFolder);
         }
-        PreparedStatement stmt = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_items (" + Columns.CATEGORY.getColumn() + " VARCHAR(50) NOT NULL, " + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.PRICE.getColumn() + " DOUBLE(64,2) DEFAULT 0.0, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.TIME.getColumn() + " REAL)");
-        PreparedStatement stmt2 = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_expired (" + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.TIME.getColumn() + " REAL)");
-        PreparedStatement stmt3 = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_personal (" + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.PRICE.getColumn() + " DOUBLE(64,2) DEFAULT 0.0, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.BUYER.getColumn() + " VARCHAR(25) NOT NULL)");
+        PreparedStatement stmt = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_items (" + Columns.CATEGORY.getColumn() + " VARCHAR(50) NOT NULL, " + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL PRIMARY KEY, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.PRICE.getColumn() + " DOUBLE(64,2) DEFAULT 0.0, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.TIME.getColumn() + " REAL)");
+        PreparedStatement stmt2 = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_expired (" + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL PRIMARY KEY, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.TIME.getColumn() + " REAL)");
+        PreparedStatement stmt3 = this.storage.prepareStatement("CREATE TABLE IF NOT EXISTS km_personal (" + Columns.UUID.getColumn() + " VARCHAR(50) NOT NULL PRIMARY KEY, " + Columns.ITEM.getColumn() + " TEXT NOT NULL, " + Columns.PRICE.getColumn() + " DOUBLE(64,2) DEFAULT 0.0, " + Columns.OWNER.getColumn() + " VARCHAR(25) NOT NULL, " + Columns.BUYER.getColumn() + " VARCHAR(25) NOT NULL)");
         this.storage.update(stmt);
         this.storage.update(stmt2);
         this.storage.update(stmt3);
         this.sqlManager = new SQLManager(this);
+        // Bancos criados antes desta versão não têm PRIMARY KEY e podem ter IDs repetidos:
+        // dá um ID novo a cada anúncio duplicado e cria o índice único.
+        for (String table : new String[] { "km_items", "km_expired", "km_personal" }) {
+            this.sqlManager.fixDuplicateIds(table);
+            this.sqlManager.ensureUniqueId(table);
+        }
+        this.sqlManager.fixIdsShared("km_items", "km_expired");
         (this.categoryManager = new CategoryManager(this)).loadCategories();
         (this.itensManager = new ItensManager(this)).loadExpireds();
         this.itensManager.loadItems();

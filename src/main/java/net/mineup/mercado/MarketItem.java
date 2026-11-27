@@ -6,6 +6,7 @@ import net.mineup.mercado.utils.geral.*;
 import net.mineup.mercado.utils.itemhandler.*;
 
 import java.text.*;
+import java.util.UUID;
 
 public class MarketItem
 {
@@ -24,12 +25,17 @@ public class MarketItem
     }
     
     public MarketItem(ItemStack item, Category category, String owner, double price) {
-        this(item, category, owner, price, createUUID(item, category, owner));
+        this(item, category, owner, price, createUUID());
     }
     
-    @SuppressWarnings("deprecation")
-	public static String createUUID(ItemStack item, Category category, String owner) {
-        return String.valueOf(category.getName().charAt(0) + item.getTypeId() + item.getData().getData()) + owner + UPMarket.getInstance().getSQLManager().getAmountPlayerItems(owner);
+    /**
+     * Gera um identificador único para o anúncio.
+     * O formato antigo (soma de char + typeId + data + contagem de anúncios) colidia
+     * quando o jogador vendia um item e anunciava outro do mesmo tipo, o que fazia o
+     * HashMap sobrescrever um anúncio e o DELETE apagar os dois.
+     */
+    public static String createUUID() {
+        return UUID.randomUUID().toString();
     }
     
     @Override

@@ -39,14 +39,43 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Verifica se o inventário tem espaço para receber a pilha inteira.
+	 * Soma o espaço livre em slots vazios e em pilhas do mesmo item (isSimilar),
+	 * respeitando o limite de pilha do item e do inventário.
+	 */
 	public static boolean invCanHoldItem(Inventory inv, ItemStack is) {
-		Iterator<?> iterator = inv.iterator();
-		if (iterator.hasNext()) {
-			ItemStack itemStack = (ItemStack) iterator.next();
-			return itemStack == null || itemStack.getType() != is.getType()
-					|| itemStack.getAmount() > is.getMaxStackSize() - is.getAmount() || true;
+		if (inv == null || is == null || is.getType() == Material.AIR) {
+			return false;
+		}
+		int maxStack = Math.min(is.getMaxStackSize(), inv.getMaxStackSize());
+		if (maxStack <= 0) {
+			maxStack = 1;
+		}
+		int remaining = is.getAmount();
+		for (ItemStack slot : inv.getContents()) {
+			if (slot == null || slot.getType() == Material.AIR) {
+				remaining -= maxStack;
+			} else if (slot.isSimilar(is)) {
+				remaining -= Math.max(0, maxStack - slot.getAmount());
+			}
+			if (remaining <= 0) {
+				return true;
+			}
 		}
 		return false;
+	}
+
+	/**
+	 * Entrega uma cópia do item ao jogador. O que não couber no inventário é dropado
+	 * aos pés dele em vez de sumir (addItem devolve o excedente).
+	 */
+	public static void giveItem(Player player, ItemStack is) {
+		Map<Integer, ItemStack> leftover = player.getInventory().addItem(new ItemStack[] { is.clone() });
+		for (ItemStack rest : leftover.values()) {
+			player.getWorld().dropItemNaturally(player.getLocation(), rest);
+		}
+		player.updateInventory();
 	}
 
 	public static long calculate(long delay) {
