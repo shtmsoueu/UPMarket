@@ -14,6 +14,8 @@ public class MarketItem
     private Category category;
     private String owner;
     private double price;
+    /** Momento (epoch ms) em que o item entrou no estado atual: anunciado ou expirado. */
+    private long time;
     
     public MarketItem(ItemStack item, Category category, String owner, double price, String uuid) {
         this.item = item;
@@ -84,5 +86,13 @@ public class MarketItem
     
     public void setPrice(double price) {
         this.price = price;
+    }
+    
+    public long getTime() {
+        return this.time;
+    }
+    
+    public void setTime(long time) {
+        this.time = time;
     }
 }

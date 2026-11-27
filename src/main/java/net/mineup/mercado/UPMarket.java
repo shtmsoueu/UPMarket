@@ -3,6 +3,7 @@ package net.mineup.mercado;
 import org.bukkit.plugin.java.*;
 import net.milkbowl.vault.economy.*;
 import net.mineup.mercado.database.*;
+import net.mineup.mercado.expiration.ExpirationTask;
 import net.mineup.mercado.manager.*;
 
 import java.sql.*;
@@ -20,6 +21,7 @@ public class UPMarket extends JavaPlugin
     private SQLManager sqlManager;
     private LanguageManager langManager;
     private Database storage;
+    private ExpirationTask expirationTask;
     private boolean useMySQL;
     private File databaseFolder;
     
@@ -62,6 +64,14 @@ public class UPMarket extends JavaPlugin
         (this.itensManager = new ItensManager(this)).loadExpireds();
         this.itensManager.loadItems();
         this.itensManager.loadPersonals();
+        (this.expirationTask = new ExpirationTask(this)).start();
+    }
+    
+    @Override
+    public void onDisable() {
+        if (this.expirationTask != null) {
+            this.expirationTask.stop();
+        }
     }
     
     public static UPMarket getInstance() {
